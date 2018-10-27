@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby -W0
+# Written by Sourav Goswami, thanks to Ruby2D!
+# The GNU General Public License v3.0
+
 require 'ruby2d'
 STDOUT.sync = true
 
