@@ -1,6 +1,1 @@
-This File is Created by Float-Hex Colour Converter
-Saved on 10/27/18 07:42:36
-				Hex = #ff50a6
-				Float R, G, B = 1.0, 0.314, 0.651
-				R, G, B = 255, 80, 166
 
