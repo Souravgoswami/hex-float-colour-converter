@@ -3,49 +3,39 @@
 # The GNU General Public License v3.0
 
 require 'ruby2d'
-STDOUT.sync = true
+require 'securerandom'
 
 module Ruby2D
 	def change_color=(colour='random')
-		opacity = self.opacity
-		self.color = colour
+		opacity, self.color = self.opacity, colour
 		self.opacity = opacity
 	end
 
-	def get_color() [self.color.r, self.color.g, self.color.b, 1] end
+	def get_color() [self.r, self.g, self.b, 1] end
 end
 
 def main
 	$width, $height = 640, 340
+	set title: 'Hex-Float Colour Converter', width: $width, height: $height, fps_cap: 45, resizable: true
 
-	control = ->(obj, func='reduce', val=0.1, threshold=0.5) {
-		if func == 'reduce' then obj.opacity -= val if obj.opacity > threshold
-		else obj.opacity += val if obj.opacity < 1
-		end
-	}
+	increase, decrease = proc { |obj, l=1| obj.opacity += 0.05 if obj.opacity < l }, proc { |obj, l=0.5| obj.opacity -= 0.05 if obj.opacity > l }
+	bg = Rectangle.new width: $width, height: $height, color: "##{SecureRandom.hex(3)}"
 
-	generate_random_color = ->() {
-		hex = ''
-		6.times do hex += [Array('a'..'f').sample, ('0'..'9').to_a.sample].sample end
-		"##{hex}"
-	}
-
-	set title: 'Hex-Float Colour Converter', width: $width, height: $height, fps_cap: 30
-	bg = Rectangle.new width: $width, height: $height, color: generate_random_color.call
-
-	typed = generate_random_color.call[1..-1]
-	floating_squares = []
+	typed = SecureRandom.hex(3)
+	floating_squares, speeds = [], []
 
 	100.times do
-		size = rand(5..10)
-		sq = Image.new('images/square.png', width: size, height: size, color: generate_random_color.call)
+		size = rand(5.0..10.0)
+		sq = Image.new('images/square.png', width: size, height: size, color: "##{SecureRandom.hex(3)}")
 		sq.x, sq.y = rand(0..$width - sq.width), rand(0..$height)
 		floating_squares << sq
+		speeds << rand(1.0..3.0)
 	end
 
+	enter_hex_label_touched = false
 	enter_hex_label = Text.new 'Enter Hex Colour: ', font: 'fonts/ArimaMadurai-Regular.ttf', x: 15, y: 15
 	hex_box_touched = false
-	hex_box = Rectangle.new color: 'white', width: $width - 30, height: 50
+	hex_box = Rectangle.new color: '#ffffff', width: $width - 30, height: 50
 	hex_box.x, hex_box.y = enter_hex_label.x, enter_hex_label.y + enter_hex_label.height + 5
 
 	hex_blink = Line.new color: 'green', x1: hex_box.x, x2: hex_box.x, y1: hex_box.y + 5, y2: hex_box.y + hex_box.height - 5
@@ -69,12 +59,15 @@ def main
 	b_box_touched = false
 	b_box = Rectangle.new width: $width/3 - 20, height: 50, x: g_box.x + g_box.width + 15, y: hex_box.y + hex_box.height + 30
 
+	r_label_touched = false
 	r_label = Text.new 'RED', color: 'green', size: 15, font: 'fonts/ArimaMadurai-Regular.ttf'
 	r_label.x, r_label.y = r_box.x + r_box.width/2 - r_label.width/2, r_box.y - r_label.height
 
+	g_label_touched = false
 	g_label = Text.new 'GREEN', color: 'green', size: 15, font: 'fonts/ArimaMadurai-Regular.ttf'
 	g_label.x, g_label.y = g_box.x + g_box.width/2 - g_label.width/2, g_box.y - g_label.height
 
+	b_label_touched = false
 	b_label = Text.new 'BLUE', color: 'green', size: 15, font: 'fonts/ArimaMadurai-Regular.ttf'
 	b_label.x, b_label.y = b_box.x + b_box.width/2 - b_label.width/2, b_box.y - b_label.height
 
@@ -115,7 +108,7 @@ def main
 	quit_button_touched = false
 	quit_button = Rectangle.new width: 100, height: 30
 	quit_button.x, quit_button.y = $width - quit_button.width - 5, $height - quit_button.height - 5
-	quit_text = Text.new 'Close', color: 'black', font: 'fonts/ArimaMadurai-Regular.ttf'
+	quit_text = Text.new 'Exit', color: 'black', font: 'fonts/ArimaMadurai-Regular.ttf'
 	quit_text.x, quit_text.y = quit_button.x + quit_button.width/2 - quit_text.width/2, quit_button.y + quit_button.height/2 - quit_text.height/2
 
 	reset_button_touched = false
@@ -135,11 +128,11 @@ def main
 	save_button_label = Text.new "Save", font: 'fonts/ArimaMadurai-Regular.ttf', color: 'orange'
 	save_button_label.x, save_button_label.y = save_button.x + save_button.width/2 - save_button_label.width/2, save_button.y + save_button.height/2 - save_button_label.height/2
 
-	saved_box = Rectangle.new x: 20, y: 20, width: $width - 40, height: $height - 40, z: 2, color: %w(red blue green fuchsia)
+	saved_box = Rectangle.new x: 20, y: 20, width: $width - 40, height: $height - 40, z: 2, color: %w(#3c4f8b #3c4f8b #eae889 #d1739c)
 	saved_box.opacity = 0
-	saved_box_label = Text.new 'Saved As', font: 'fonts/ArimaMadurai-Regular.ttf', color: 'white', size: 55, z: 3
+	saved_box_label = Text.new 'Saved As', font: 'fonts/ArimaMadurai-Regular.ttf', color: '#ffffff', size: 55, z: 3
 	saved_box_label.x, saved_box_label.y = saved_box.x + saved_box.width/2 - saved_box_label.width/2, saved_box.y + saved_box.height/2 - saved_box_label.height
-	saved_box_label1 = Text.new 'MyColours.txt', font: 'fonts/ArimaMadurai-Regular.ttf', color: 'white', size: 55, z: 3
+	saved_box_label1 = Text.new 'MyColours.txt', font: 'fonts/ArimaMadurai-Regular.ttf', color: '#ffffff', size: 55, z: 3
 	saved_box_label1.x, saved_box_label1.y = saved_box.x + saved_box.width/2 - saved_box_label1.width/2, saved_box_label.y + saved_box_label.height
 	saved_box_label.opacity = saved_box_label1.opacity = 0
 
@@ -148,32 +141,35 @@ def main
 	blurry_line.opacity = 0
 
 	on :key_down do |k|
-		exit! 0 if %w(escape q p).include?(k.key)
+		exit 0 if %w(escape q p).include?(k.key)
 		if r_box_touched
-			r_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and r_key.length < 10
+			r_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and r_key.length < 6
 			r_key = '1' if r_key.to_i > 1
 			r_key.chop! if k.key == 'backspace'
 		elsif g_box_touched
-			g_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and g_key.length < 10
+			g_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and g_key.length < 6
 			g_key = '1' if g_key.to_i > 1
 			g_key.chop! if k.key == 'backspace'
 		elsif b_box_touched
-			b_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and b_key.length < 10
+			b_key += k.key[-1] if k.key[-1].match(/[0-9.]/) and b_key.length < 6
 			b_key = '1' if b_key.to_i > 1
 			b_key.chop! if k.key == 'backspace'
 		else
 			if k.key == 'backspace' then typed.chop!
-				else typed += k.key[-1] if k.key[-1].match(/[a-fA-F0-9]/) and typed.length < 6
-			end
+				else typed += k.key[-1] if k.key[-1].match(/[a-f0-9]/) and typed.length < 6 end
 		end
 	end
 
 	on :mouse_move do |e|
+		enter_hex_label_touched = enter_hex_label.contains?(e.x, e.y) ? true : false
 		clear_label_touched = clear_label.contains?(e.x, e.y) ? true : false
 		hex_box_touched = hex_box.contains?(e.x, e.y) ? true : false
 		r_box_touched = r_box.contains?(e.x, e.y) ? true : false
 		g_box_touched = g_box.contains?(e.x, e.y) ? true : false
 		b_box_touched = b_box.contains?(e.x, e.y) ? true : false
+		r_label_touched = r_label.contains?(e.x, e.y) ? true : false
+		g_label_touched = g_label.contains?(e.x, e.y) ? true : false
+		b_label_touched = b_label.contains?(e.x, e.y) ? true : false
 		r_rgb_touched = r_rgb.contains?(e.x, e.y) ? true : false
 		g_rgb_touched = g_rgb.contains?(e.x, e.y) ? true : false
 		b_rgb_touched = b_rgb.contains?(e.x, e.y) ? true : false
@@ -209,82 +205,76 @@ def main
 	r, g, b = 0,0,0
 
 	on :mouse_up do |e|
+		# clear the screen if reset or clear button is pressed
 		typed = r_key = g_key = b_key = '' if clear_label.contains?(e.x, e.y)
 		typed = r_key = g_key = b_key = '' if reset_button.contains?(e.x, e.y)
-		exit if quit_button.contains?(e.x, e.y)
-		if random_button.contains?(e.x, e.y)
-			typed = generate_random_color.call[1..-1]
-		end
+
+		exit 0 if quit_button.contains?(e.x, e.y)
+		typed = SecureRandom.hex(3) if random_button.contains?(e.x, e.y)
+
+		# Save colours to a file
 		if save_button.contains?(e.x, e.y)
-			file = File.open('My Colours.txt', 'a+')
-			if File.zero?('My Colours.txt')
-				file.puts "This File is Created by Float-Hex Colour Converter\n"
-			else
-				unless file.readlines[0].chomp == 'This File is Created by Hex-Float Colour Converter'
-					file.truncate(0)
-					file.puts 'This File is Created by Hex-Float Colour Converter'
-				end
+			File.open('My Colours.txt', 'a+') do |file|
+				if File.zero?('My Colours.txt') then file.puts 'This File is Created by Float-Hex Colour Converter' end
+				file.puts "Saved #{Time.new.strftime('on %D at %T')}
+					Hex = ##{typed}
+					Float R, G, B = #{r.to_f.round(4)}, #{g.to_f.round(4)}, #{b.to_f.round(4)}
+					R, G, B = #{r.to_i.*(255).ceil}, #{g.to_i.*(255).ceil}, #{b.to_i.*(255).ceil}\n\n"
 			end
-			file.puts "Saved on #{Time.new.strftime('%D %T')}
-				Hex = ##{typed}
-				Float R, G, B = #{r.to_f.round(3)}, #{g.to_f.round(3)}, #{b.to_f.round(3)}
-				R, G, B = #{r.*(255).to_f.ceil}, #{g.*(255).to_f.ceil}, #{b.*(255).to_f.ceil}\n\n"
-			file.close
-			saved_box.opacity = 0.8
-			saved_box_label.opacity = 0.8
-			saved_box_label1.opacity = 0.8
+			saved_box.opacity = saved_box_label.opacity = saved_box_label1.opacity = 0.8
 		end
 	end
 
 	update do
-		floating_squares.each do |square|
-			square.y -= 1
-			square.rotate += square.width/5.0
+		floating_squares.each_with_index do |square, index|
+			square.y -= speeds[index]
+			square.rotate += speeds[index]
 			if square.y < -square.height
-				size = rand(5..10)
-				square.color = generate_random_color.call
+				size = rand(5.0..10.0)
+				square.color = "##{SecureRandom.hex(3)}"
 				square.width = square.height = size
-				square.x, square.y = rand(0..$width - size), rand($height..$height + 100)
+				square.x, square.y = rand(0..$width - size), $height
+				speeds.delete_at(index)
+				speeds.insert(index, rand(1.0..3.0))
 			end
 		end
-
 
 		saved_box.opacity -= 0.01 if saved_box.opacity > 0
 		saved_box_label.opacity -= 0.01 if saved_box_label.opacity > 0
 		saved_box_label1.opacity -= 0.01 if saved_box_label1.opacity > 0
 
-		if blurry_line_active
-			control.call(blurry_line, '', 0.1)
-		else
-			control.call(blurry_line, 'reduce', 0.05, 0)
-		end
+		blurry_line_active ? increase.call(blurry_line) : decrease.call(blurry_line, 0)
+		r_label_touched ? decrease.call(r_label) : increase.call(r_label)
+		g_label_touched ? decrease.call(g_label) : increase.call(g_label)
+		b_label_touched ? decrease.call(b_label) : increase.call(b_label)
+		enter_hex_label_touched ? decrease.call(enter_hex_label) : increase.call(enter_hex_label)
 
-		clear_label_touched ? control.call(clear_label) : control.call(clear_label, '')
-		hex_box_touched ? control.call(hex_box, 'reduce', 0.03, 0.8) : control.call(hex_box, '', 0.03)
+		clear_label_touched ? decrease.call(clear_label) : increase.call(clear_label)
+		hex_box_touched ? decrease.call(hex_box) : increase.call(hex_box)
 
-		r_box_touched ? control.call(r_box, 'reduce', 0.03, 0.7) : control.call(r_box, '')
-		g_box_touched ? control.call(g_box, 'reduce', 0.03, 0.7) : control.call(g_box, '')
-		b_box_touched ? control.call(b_box, 'reduce', 0.03, 0.7) : control.call(b_box, '')
+		r_box_touched ? decrease.call(r_box) : increase.call(r_box)
+		g_box_touched ? decrease.call(g_box) : increase.call(g_box)
+		b_box_touched ? decrease.call(b_box) : increase.call(b_box)
 
-		r_rgb_touched ? control.call(r_rgb, 'reduce', 0.03, 0.7) : control.call(r_rgb, '')
-		g_rgb_touched ? control.call(g_rgb, 'reduce', 0.03, 0.7) : control.call(g_rgb, '')
-		b_rgb_touched ? control.call(b_rgb, 'reduce', 0.03, 0.7) : control.call(b_rgb, '')
+		r_rgb_touched ? decrease.call(r_rgb) : increase.call(r_rgb)
+		g_rgb_touched ? decrease.call(g_rgb) : increase.call(g_rgb)
+		b_rgb_touched ? decrease.call(b_rgb) : increase.call(b_rgb)
 
-		random_button_touched ? control.call(random_button) : control.call(random_button, '')
-		save_button_touched ? control.call(save_button) : control.call(save_button, '')
-		reset_button_touched ? control.call(reset_button) : control.call(reset_button, '')
-		quit_button_touched ? control.call(quit_button) : control.call(quit_button, '')
+		random_button_touched ? decrease.call(random_button) : increase.call(random_button)
+		save_button_touched ? decrease.call(save_button) : increase.call(save_button)
+		reset_button_touched ? decrease.call(reset_button) : increase.call(reset_button)
+		quit_button_touched ? decrease.call(quit_button) : increase.call(quit_button)
 
 		# convert hex to decimal
 		unless typed[1..2].nil?
-			r = (typed[0..1].to_i(16).round(10)/255.0).round(8)
+			r = (typed[0..1].to_i(16)/255.0).round(4)
 			r_key, g_key, b_key = '', '', ''
 		else r = r_key
 		end
-		g = typed[3..4].nil? ? g_key : (typed[2..3].to_i(16).round(10)/255.0).round(8)
-		b = typed[5..6].nil? ? b_key : (typed[4..5].to_i(16).round(10)/255.0).round(8)
+		g = typed[3..4].nil? ? g_key : (typed[2..3].to_i(16)/255.0).round(4)
+		b = typed[5..6].nil? ? b_key : (typed[4..5].to_i(16)/255.0).round(4)
 
-		r_text.text, g_text.text, b_text.text = r, g, b		#r.to_f.round(10), g.to_f.round(10), b.to_f.round(10)
+		r_text.text, g_text.text, b_text.text = r, g, b
 
 		hex_box_entry_text.text = typed
 		bg.color.r += 0.05 if bg.color.r < r.to_f
@@ -307,36 +297,33 @@ def main
 		b_rgb_label.text = b2_key.empty? ? b.to_f.*(255).ceil : b2_key
 
 		if bg.color.r + bg.color.g + bg.color.b > 2.6
-			hex_box.change_color = hex_box_entry_text.change_color = enter_hex_label.change_color = 'blue'
-			r_label.change_color = g_label.change_color = b_label.change_color = 'blue'
-		 	hex_box_entry_text.change_color = clear_label.change_color = 'white'
-			r_box.change_color = g_box.change_color = b_box.change_color = 'blue'
-			r_rgb_label.change_color = g_rgb_label.change_color = b_rgb_label.change_color = 'white'
-			r_rgb.change_color = g_rgb.change_color = b_rgb.change_color = 'blue'
-			random_button.change_color = quit_button.change_color = 'blue'
-			random_text.change_color = quit_text.change_color = 'white'
-			r_text.change_color = g_text.change_color = b_text.change_color = hash.change_color = 'white'
-			random_text.change_color = quit_text.change_color = 'white'
-			save_button.change_color = reset_button.change_color = 'blue'
-			save_button_label.change_color = reset_button_label.change_color = 'white'
+			hex_box.change_color = hex_box_entry_text.change_color = enter_hex_label.change_color = '#0000ff'
+			r_label.change_color = g_label.change_color = b_label.change_color = '#0000ff'
+			r_box.change_color = g_box.change_color = b_box.change_color = '#0000ff'
+			r_rgb.change_color = g_rgb.change_color = b_rgb.change_color = '#0000ff'
+			random_button.change_color = quit_button.change_color = '#0000ff'
+			save_button.change_color = reset_button.change_color = '#0000ff'
+		 	hex_box_entry_text.change_color = clear_label.change_color = '#ffffff'
+			r_rgb_label.change_color = g_rgb_label.change_color = b_rgb_label.change_color = '#ffffff'
+			random_text.change_color = quit_text.change_color = '#ffffff'
+			r_text.change_color = g_text.change_color = b_text.change_color = hash.change_color = '#ffffff'
+			random_text.change_color = quit_text.change_color = '#ffffff'
+			save_button_label.change_color = reset_button_label.change_color = '#ffffff'
 		else
-			hex_box.change_color = enter_hex_label.change_color = 'white'
-			r_label.change_color = g_label.change_color = b_label.change_color = 'white'
-			r_box.change_color = g_box.change_color = b_box.change_color = 'white'
+			hex_box.change_color = enter_hex_label.change_color = '#ffffff'
+			r_label.change_color = g_label.change_color = b_label.change_color = '#ffffff'
+			r_box.change_color = g_box.change_color = b_box.change_color = '#ffffff'
+			random_button.change_color = quit_button.change_color = '#ffffff'
+			r_rgb.change_color = g_rgb.change_color = b_rgb.change_color = '#ffffff'
+			save_button.change_color = reset_button.change_color = '#ffffff'
 			hex_box_entry_text.change_color = clear_label.change_color = hash.change_color = bg.get_color
 			hex_blink.change_color = r_line.change_color = g_line.change_color = b_line.change_color = bg.get_color
 			r_text.change_color = g_text.change_color = b_text.change_color = bg.get_color
 
 			r_rgb_label.change_color = g_rgb_label.change_color = b_rgb_label.change_color = bg.get_color
-			random_button.change_color = quit_button.change_color = 'white'
 			random_text.change_color = quit_text.change_color = bg.get_color
 			r_text.change_color = g_text.change_color = b_text.change_color = hash.change_color = bg.get_color
-			r_rgb.change_color = g_rgb.change_color = b_rgb.change_color = 'white'
-			save_button.change_color = reset_button.change_color = 'white'
-			random_text.change_color = 'purple'
-			quit_text.change_color = 'orange'
-			save_button_label.change_color = 'red'
-			reset_button_label.change_color = 'green'
+			random_text.change_color, quit_text.change_color,  save_button_label.change_color, reset_button_label.change_color= 'purple', 'orange', 'red', 'green'
 		end
 
 		hex_blink.x1 = hex_blink.x2 = hex_box_entry_text.x + hex_box_entry_text.width + 5
@@ -344,10 +331,10 @@ def main
 		g_line.x1 = g_line.x2 = g_text.x + g_text.width + 5
 		b_line.x1 = b_line.x2 = b_text.x + b_text.width + 5
 
-		if r_box_touched then r_line.opacity = Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1 elsif r_line.opacity > 0 then r_line.opacity -= 0.2 end
-		if g_box_touched then g_line.opacity = Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1 elsif g_line.opacity > 0 then g_line.opacity -= 0.2 end
-	 	if b_box_touched then b_line.opacity = Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1 elsif b_line.opacity > 0 then b_line.opacity -= 0.2 end
-		if hex_box_touched then hex_blink.opacity = Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1 elsif hex_blink.opacity > 0 then hex_blink.opacity -= 0.2 end
+		r_line.opacity = r_box_touched ? (Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1) : 0
+		g_line.opacity = g_box_touched ? (Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1) : 0
+	 	b_line.opacity =  b_box_touched ? (Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1) : 0
+		hex_blink.opacity =  hex_box_touched ? (Time.new.strftime('%N')[0].to_i % 2 == 0 ? 0 : 1) : 0
 	end
 	show
 end
