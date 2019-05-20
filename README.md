@@ -30,10 +30,10 @@ Hovering the mouse either on the hex box or on the RGB boxes will let you to typ
 
 ### On Screen Buttons 🗔
 To press on the on screen buttons, you can left click, middle click or right click your mouse. The available buttons are:
-+ Clear will clear the screen
-+ Random! will give you another random colour.
-+ Save will save your current colour to a file.
-+ Exit will simply exit the app.
++ Clear will clear the current colour (equivalent to pressing T).
++ Random! will give you another random colour (equivalent to pressing R).
++ Save will save your current colour to a file (equivalent to pressing S).
++ Exit will simply exit the app (Equivalent to pressing Escape / P / Q).
 
 ## Screenshots 📸
 ![Screenshot 1](https://github.com/Souravgoswami/hex-float-colour-converter/blob/master/Screenshots/aa.png)
