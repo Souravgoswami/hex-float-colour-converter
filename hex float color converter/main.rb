@@ -59,49 +59,49 @@ def main
 	g_text = Text.new '', color: '#FF5C5E', size: 20, font: FONT
 	g_text.x, g_text.y = g_box.x + 15, g_box.y + g_box.height/2 - g_text.height/2
 
-	b_text = Text.new '', color: 'green', size: 20, font: FONT
+	b_text = Text.new '', color: '#00FF00', size: 20, font: FONT
 	b_text.x, b_text.y = b_box.x + 15, b_box.y + b_box.height/2 - b_text.height/2
 
 	r_rgb = Rectangle.new width: $width/3 - 20, height: r_box.height
 	r_rgb.x, r_rgb.y = hex_box.x, r_box.y + r_box.height + 15
-	r_rgb_label = Text.new '255', font: FONT, color: 'black'
+	r_rgb_label = Text.new '255', font: FONT, color: '#000000'
 	r_rgb_label.x, r_rgb_label.y = r_rgb.x + 15, r_rgb.y + r_rgb.height/2 - r_rgb_label.height/2
 
 	g_rgb = Rectangle.new width: $width/3 - 20, height: r_box.height
 	g_rgb.x, g_rgb.y = r_rgb.x + r_rgb.width + 15, r_rgb.y
-	g_rgb_label = Text.new '255', font: FONT, color: 'black'
+	g_rgb_label = Text.new '255', font: FONT, color: '#000000'
 	g_rgb_label.x, g_rgb_label.y = g_rgb.x + 15, g_rgb.y + g_rgb.height/2 - g_rgb_label.height/2
 
 	b_rgb = Rectangle.new width: $width/3 - 20, height: r_box.height
 	b_rgb.x, b_rgb.y = g_rgb.x + g_rgb.width + 15, r_rgb.y
-	b_rgb_label = Text.new '255', font: FONT, color: 'black'
+	b_rgb_label = Text.new '255', font: FONT, color: '#000000'
 	b_rgb_label.x, b_rgb_label.y = b_rgb.x + 15, b_rgb.y + b_rgb.height/2 - b_rgb_label.height/2
 
 	r_key, g_key, b_key = '', '', ''
 
 	quit_button = Rectangle.new width: 100, height: 30
 	quit_button.x, quit_button.y = $width - quit_button.width - 5, $height - quit_button.height - 5
-	quit_text = Text.new 'Exit', color: 'black', font: FONT
+	quit_text = Text.new 'Exit', color: '#000000', font: FONT
 	quit_text.x, quit_text.y = quit_button.x + quit_button.width/2 - quit_text.width/2, quit_button.y + quit_button.height/2 - quit_text.height/2
 
 	reset_button = Rectangle.new width: 100, height: 30
 	reset_button.x, reset_button.y = quit_button.x - quit_button.width - 5, quit_button.y - quit_button.height - 5
-	reset_button_label = Text.new "Clear", font: FONT, color: 'orange'
+	reset_button_label = Text.new "Clear", font: FONT, color: '#DFB81B'
 	reset_button_label.x, reset_button_label.y = reset_button.x + reset_button.width/2 - reset_button_label.width/2, reset_button.y + reset_button.height/2 - reset_button_label.height/2
 
 	random_button = Rectangle.new width: 100, height: 30
 	random_button.x, random_button.y = reset_button.x + reset_button.width + 5, reset_button.y
-	random_text = Text.new 'Random!', color: 'black', font: FONT
+	random_text = Text.new 'Random!', color: '#000000', font: FONT
 	random_text.x, random_text.y = random_button.x + random_button.width/2 - random_text.width/2, random_button.y + random_button.height/2 - random_text.height/2
 
 	save_button = Rectangle.new width: 100, height: 30, x: reset_button.x, y: quit_button.y
-	save_button_label = Text.new "Save", font: FONT, color: 'orange'
+	save_button_label = Text.new "Save", font: FONT, color: '#DFB81B'
 	save_button_label.x, save_button_label.y = save_button.x + save_button.width/2 - save_button_label.width/2, save_button.y + save_button.height/2 - save_button_label.height/2
 
-	saved_box = Rectangle.new(x: 20, y: 20, width: $width - 40, height: $height - 40, z: 2, color: %w(#3c4f8b #3c4f8b #eae889 #d1739c), opacity: 0)
-	saved_box_label = Text.new('Saved As', font: FONT, color: '#ffffff', size: 55, z: 3, opacity: 0)
+	saved_box = Rectangle.new(x: 20, y: 20, width: $width - 40, height: $height - 40, z: 2, color: '#DFB81B', opacity: 0)
+	saved_box_label = Text.new('Saved As', font: FONT, color: '#FFFFFF', size: 55, z: 3, opacity: 0)
 	saved_box_label.x, saved_box_label.y = saved_box.x + saved_box.width/2 - saved_box_label.width/2, saved_box.y + saved_box.height/2 - saved_box_label.height
-	saved_box_label1 = Text.new('MyColours.txt', font: FONT, color: '#ffffff', size: 55, z: 3, opacity: 0)
+	saved_box_label1 = Text.new('MyColours.txt', font: FONT, color: '#FFFFFF', size: 55, z: 3, opacity: 0)
 	saved_box_label1.x, saved_box_label1.y = saved_box.x + saved_box.width/2 - saved_box_label1.width/2, saved_box_label.y + saved_box_label.height
 
 	blurry_line = Image.new(File.join(PATH, %w(images line.png)), width: 10)
@@ -170,11 +170,10 @@ def main
 
 		# Save colours to a file
 		if save_button.contains?(e.x, e.y)
-			filepath = File.join(PATH, 'My Colours.txt')
+			filepath, saved_box.color, saved_box_label.color, saved_box_label1.color = File.join(PATH, 'My Colours.txt'), bg.color, r_box.color, r_box.color
 			File.write(filepath, 'This File is Created by Float-Hex Colour Converter') if !File.exist?(filepath) || File.zero?(filepath)
-
 			File.open(filepath, 'a+') do |file|
-				puts(<<~EOF
+				file.puts(<<~EOF
 						\n\nSaved #{Time.new.strftime('on %D at %T')}
 						\t\t\tHex = ##{typed.upcase}
 						\t\t\tFloat RGB = #{[r_key, g_key, b_key].join(', ')}
