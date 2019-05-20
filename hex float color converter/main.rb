@@ -14,7 +14,7 @@ end
 
 def main
 	$width, $height = 640, 340
-	set title: 'Hex-Float Colour Converter', width: $width, height: $height, fps_cap: 45, resizable: true
+	set title: 'Hex-Float Colour Converter', width: $width, height: $height, fps_cap: 45, resizable: true, icon: File.join(PATH, %w(images icon.png))
 
 	increase, decrease = proc { |obj, l = 1| obj.opacity += 0.05 if obj.opacity < l }, proc { |obj, l = 0.5| obj.opacity -= 0.05 if obj.opacity > l }
 	bg = Rectangle.new width: $width, height: $height, color: "##{SecureRandom.hex(3)}"
@@ -113,10 +113,29 @@ def main
 	blink_line = Line.new(color: '#00FF00', x1: r_box.x, x2: r_box.x, y1: r_box.y + 5, y2: r_box.y + r_box.height - 5)
 	editable_obj = { hex_box => hex_box_entry_text, r_box => r_text, g_box => g_text , b_box => b_text }
 
-	raw_hex = ''
+	r, g, b, r_hex, g_hex, b_hex, raw_hex = 0, 0, 0, '', '', '', ''
+	texts, touched_text = binding.eval('local_variables').map { |lv| eval("#{lv} if Ruby2D::Text === #{lv}") }.compact - [saved_box_label1, saved_box_label], nil
+
+	write_to_file = proc do
+		filepath, saved_box.color, saved_box_label.color, saved_box_label1.color = File.join(PATH, 'My Colours.txt'), bg.color, r_box.color, r_box.color
+		File.write(filepath, 'This File is Created by Float-Hex Colour Converter') if !File.exist?(filepath) || File.zero?(filepath)
+		File.open(filepath, 'a+') do |file|
+			file.puts(<<~EOF
+					\n\nSaved #{Time.new.strftime('on %D at %T')}
+					\t\t\tHex = ##{typed.upcase}
+					\t\t\tFloat RGB = #{[r_key, g_key, b_key].join(', ')}
+					\t\t\tRGB = #{[r, g, b].join(', ')}
+				EOF
+			)
+		end
+		saved_box.opacity = saved_box_label.opacity = saved_box_label1.opacity = 1
+	end
 
 	on :key_down do |k|
 		close if %w(escape q p).include?(k.key)
+		[typed, r_key, g_key, b_key].each { |k| k.clear } if  k.key == 't'
+		typed.replace(SecureRandom.hex(3)) if k.key == 'r'
+		write_to_file.call if k.key == 's'
 
 		case touched_box
 			when r_box
@@ -138,18 +157,14 @@ def main
 				b_key.chop! if k.key == 'backspace'
 
 			else
-				if k.key == 'backspace' then typed.chop!
+				typed.chop! if k.key == 'backspace'
+				typed.concat(k.key[-1]) if k.key[-1].match(/[a-f0-9]/) and typed.length < 6 if k.key != 'backspace'
 				typed = raw_hex if typed.empty? and k.key != 'backspace'
 
 				t1, t2, t3 = typed[0..1].to_s, typed[2..3].to_s, typed[4..5].to_s
 				r_key, g_key, b_key = [t1, t2, t3].map { |fc| fc.to_i(16)./(255.0).round(6).to_s }
-
-				else typed.concat(k.key[-1]) if k.key[-1].match(/[a-f0-9]/) and typed.length < 6
-				end
 		end
 	end
-
-	texts, touched_text = binding.eval('local_variables').map { |lv| eval("#{lv} if Ruby2D::Text === #{lv}") }.compact - [saved_box_label1, saved_box_label], nil
 
 	on :mouse_move do |e|
 		enter_hex_label_touched = enter_hex_label.contains?(e.x, e.y)
@@ -160,29 +175,12 @@ def main
 		texts.each { |t| t.contains?(e.x, e.y) ? (touched_text = t) && (break) : touched_text = nil }
 	end
 
-	r, g, b, r_hex, g_hex, b_hex = 0, 0, 0, '', '', ''
-
 	on :mouse_up do |e|
 		[typed, r_key, g_key, b_key].each { |k| k.clear } if clear_label.contains?(e.x, e.y) || reset_button.contains?(e.x, e.y)
 
+		write_to_file.call if save_button.contains?(e.x, e.y)
 		close if quit_button.contains?(e.x, e.y)
 		typed.replace(SecureRandom.hex(3)) if random_button.contains?(e.x, e.y)
-
-		# Save colours to a file
-		if save_button.contains?(e.x, e.y)
-			filepath, saved_box.color, saved_box_label.color, saved_box_label1.color = File.join(PATH, 'My Colours.txt'), bg.color, r_box.color, r_box.color
-			File.write(filepath, 'This File is Created by Float-Hex Colour Converter') if !File.exist?(filepath) || File.zero?(filepath)
-			File.open(filepath, 'a+') do |file|
-				file.puts(<<~EOF
-						\n\nSaved #{Time.new.strftime('on %D at %T')}
-						\t\t\tHex = ##{typed.upcase}
-						\t\t\tFloat RGB = #{[r_key, g_key, b_key].join(', ')}
-						\t\t\tRGB = #{[r, g, b].join(', ')}
-					EOF
-				)
-			end
-			saved_box.opacity = saved_box_label.opacity = saved_box_label1.opacity = 1
-		end
 	end
 
 	update do
@@ -273,7 +271,8 @@ def main
 			[hex_box, enter_hex_label, r_label, g_label, b_label, r_box, g_box, b_box, r_rgb, g_rgb, b_rgb,
 				random_button, quit_button, save_button, reset_button].each { |obj| obj.change_color = '#FFFFFF' }
 
-			random_text.change_color, quit_text.change_color,  save_button_label.change_color, reset_button_label.change_color= 'purple', 'orange', 'red', 'green'
+			random_text.change_color, quit_text.change_color = '#00F57F', '#F5B200'
+			save_button_label.change_color, reset_button_label.change_color= '#00C2F5', '#D65AFB'
 		end
 	end
 
