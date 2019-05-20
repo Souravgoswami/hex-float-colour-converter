@@ -11,7 +11,7 @@ Convert Hex colours to float colours and vice versa.
 + Run the `main.rb` file with Ruby interpreter.
 
 ## Usage ❓
-Running the [main.rb]() will bring up a window. You can type a hex value on the top box, or you can type floating RGB value in the boxes on 2nd row. The bg will change accordingly.
+Running the [main.rb](https://github.com/Souravgoswami/hex-float-colour-converter/blob/master/hex%20float%20color%20converter/main.rb) will bring up a window. You can type a hex value on the top box, or you can type floating RGB value in the boxes on 2nd row. The bg will change accordingly.
 
 ### Typing 👨‍💻👩‍💻
 Note that, on the Floating RGB boxes, you can't type a value more than 1. You can type 0.01234 but not 1.0001 - which will reset the value to 1.
