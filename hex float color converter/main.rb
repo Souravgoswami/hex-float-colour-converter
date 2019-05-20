@@ -13,7 +13,7 @@ module Ruby2D
 end
 
 def main
-	$width, $height = 640, 340
+	$width, $height, $fps = 640, 340, 45
 	set title: 'Hex-Float Colour Converter', width: $width, height: $height, fps_cap: 45, resizable: true, icon: File.join(PATH, %w(images icon.png))
 
 	increase, decrease = proc { |obj, l = 1| obj.opacity += 0.05 if obj.opacity < l }, proc { |obj, l = 0.5| obj.opacity -= 0.05 if obj.opacity > l }
@@ -131,40 +131,48 @@ def main
 		saved_box.opacity = saved_box_label.opacity = saved_box_label1.opacity = 1
 	end
 
+	# Ctrl is nothing fancy. It sets the r, g, b, hex texts. I find no good matching name for this object.
+	ctrl = lambda do |k|
+		case touched_box
+			when r_box
+				typed.clear
+				r_key.concat(k[-1]) if k[-1].match(/[0-9.]/) and r_key.length < 8
+				r_key.replace('1') if r_key.to_f > 1
+				r_key.chop! if k == 'backspace'
+
+			when g_box
+				typed.clear
+				g_key.concat(k[-1]) if k[-1].match(/[0-9.]/) and g_key.length < 8
+				g_key.replace('1') if g_key.to_f > 1
+				g_key.chop! if k == 'backspace'
+
+			when b_box
+				typed.clear
+				b_key.concat(k[-1]) if k[-1].match(/[0-9.]/) and b_key.length < 8
+				b_key.replace('1') if b_key.to_f > 1
+				b_key.chop! if k == 'backspace'
+
+			else
+				typed.chop! if k == 'backspace'
+				typed.concat(k[-1]) if k[-1].match(/[a-f0-9]/) and typed.length < 6 if k != 'backspace'
+				typed = raw_hex if typed.empty? and k != 'backspace'
+
+				t1, t2, t3 = typed[0..1].to_s, typed[2..3].to_s, typed[4..5].to_s
+				r_key, g_key, b_key = [t1, t2, t3].map { |fc| fc.to_i(16)./(255.0).round(6).to_s }
+		end
+	end
+
 	on :key_down do |k|
 		close if %w(escape q p).include?(k.key)
 		[typed, r_key, g_key, b_key].each { |k| k.clear } if  k.key == 't'
 		typed.replace(SecureRandom.hex(3)) if k.key == 'r'
 		write_to_file.call if k.key == 's'
 
-		case touched_box
-			when r_box
-				typed.clear
-				r_key.concat(k.key[-1]) if k.key[-1].match(/[0-9.]/) and r_key.length < 8
-				r_key.replace('1') if r_key.to_f > 1
-				r_key.chop! if k.key == 'backspace'
-
-			when g_box
-				typed.clear
-				g_key.concat(k.key[-1]) if k.key[-1].match(/[0-9.]/) and g_key.length < 8
-				g_key.replace('1') if g_key.to_f > 1
-				g_key.chop! if k.key == 'backspace'
-
-			when b_box
-				typed.clear
-				b_key.concat(k.key[-1]) if k.key[-1].match(/[0-9.]/) and b_key.length < 8
-				b_key.replace('1') if b_key.to_f > 1
-				b_key.chop! if k.key == 'backspace'
-
-			else
-				typed.chop! if k.key == 'backspace'
-				typed.concat(k.key[-1]) if k.key[-1].match(/[a-f0-9]/) and typed.length < 6 if k.key != 'backspace'
-				typed = raw_hex if typed.empty? and k.key != 'backspace'
-
-				t1, t2, t3 = typed[0..1].to_s, typed[2..3].to_s, typed[4..5].to_s
-				r_key, g_key, b_key = [t1, t2, t3].map { |fc| fc.to_i(16)./(255.0).round(6).to_s }
-		end
+		ctrl.call(k.key)
 	end
+
+	held_time = 0
+	on(:key_held) { |k| ctrl.(k.key) if (((p held_time += 1) * 6) % $fps) == 0 && (k.key == 'backspace') }
 
 	on :mouse_move do |e|
 		enter_hex_label_touched = enter_hex_label.contains?(e.x, e.y)
