@@ -11,7 +11,7 @@ Convert Hex colours to float colours and vice versa.
 + Run the `main.rb` file with Ruby interpreter.
 
 ## Usage ❓
-Running the [main.rb](https://github.com/Souravgoswami/hex-float-colour-converter/blob/master/hex%20float%20color%20converter/main.rb) will bring up a window. You can type a hex value on the top box, or you can type floating RGB value in the boxes on 2nd row. The bg will change accordingly.
+Running the [main.rb](https://github.com/Souravgoswami/hex-float-colour-converter/blob/master/hex%20float%20color%20converter/main.rb) will bring up a window. You can type a hex value on the top box, or you can type floating RGB value in the boxes on the 2nd row. The bg will change accordingly.
 
 ### Typing 👨‍💻👩‍💻
 Note that, on the Floating RGB boxes, you can't type a value more than 1. You can type 0.01234 but not 1.0001 - which will reset the value to 1.
@@ -26,10 +26,10 @@ You can't type any letter on the hex box. The hex box will only accept input fro
 + T clears the current colour.
 
 ### Mouse 🐭
-Hovering the mouse either on the hex box or on the RGB boxes will let you to type in the box.
+Hovering the mouse either on the hex box or on the RGB boxes will let you type in the box.
 
-### On Screen Buttons 🗔
-To press on the on screen buttons, you can left click, middle click or right click your mouse. The available buttons are:
+### On-Screen Buttons 🗔
+To press on the on-screen buttons, you can left click, middle click or right click your mouse. The available buttons are:
 + Clear will clear the current colour (equivalent to pressing T).
 + Random! will give you another random colour (equivalent to pressing R).
 + Save will save your current colour to a file (equivalent to pressing S).
